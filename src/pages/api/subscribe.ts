@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { ApiError, ok, parseWith, withErrorHandling } from '@/lib/api';
 import { prisma } from '@/lib/prisma';
 import { payments } from '@/services/payments';
+import { saveSubscription } from '@/services/subscriptions';
 
 const bodySchema = z
   .union([z.object({}).strict(), z.null(), z.literal('')])
@@ -56,6 +57,12 @@ async function subscribeHandler(
     successUrl: process.env.STRIPE_SUCCESS_URL || DEFAULT_SUCCESS_URL,
     cancelUrl: process.env.STRIPE_CANCEL_URL || DEFAULT_CANCEL_URL,
   });
+
+  // Without real Stripe there is no webhook to activate the plan,
+  // so the sandbox gateway completes the checkout synchronously.
+  if (payments.id === 'sandbox') {
+    await saveSubscription(`sub_sandbox_${customerId}`, customerId);
+  }
 
   ok(response, { sessionId: checkoutSession.sessionId, url: checkoutSession.url });
 }

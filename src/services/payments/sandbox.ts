@@ -26,6 +26,8 @@ function sandboxSubscriptionId(customerId: string): string {
  * It mimics the happy path so the whole app flow works without external services.
  */
 export const sandboxGateway: PaymentGateway = {
+  id: 'sandbox',
+
   async getPrice(): Promise<PriceInfo> {
     return { priceId: SANDBOX_PRICE_ID, unitAmount: SANDBOX_PRICE_CENTS };
   },

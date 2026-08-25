@@ -25,6 +25,8 @@ export type CheckoutSessionResult = {
 };
 
 export interface PaymentGateway {
+  /** Provider identifier, used to branch sandbox-only side effects. */
+  readonly id: 'stripe' | 'sandbox';
   getPrice(priceId: string): Promise<PriceInfo>;
   ensureCustomer(input: { email: string; existingCustomerId?: string }): Promise<string>;
   createCheckoutSession(input: CheckoutSessionInput): Promise<CheckoutSessionResult>;

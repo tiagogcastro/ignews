@@ -71,10 +71,15 @@ npm run dev             # http://localhost:3010
 ```
 
 Without any credentials the app runs in sandbox mode: sample posts replace
-Prismic, checkout redirects to the success page instead of Stripe, and an
-email only development login (`AUTH_DEV_LOGIN=true`) lets you simulate both
-a paying reader (`alice@example.com`) and a visitor without a plan
+Prismic, the subscribe flow completes synchronously (the plan activates
+right away, standing in for the Stripe webhook), and an email only
+development login (`AUTH_DEV_LOGIN=true`) lets you simulate both a paying
+reader (`alice@example.com`) and a visitor without a plan
 (`carol@example.com`).
+
+The Stripe integration itself is fully wired: with free test keys the same
+button redirects to Stripe hosted Checkout and only the signed
+`checkout.session.completed` webhook activates the plan.
 
 ### Going live with real providers
 

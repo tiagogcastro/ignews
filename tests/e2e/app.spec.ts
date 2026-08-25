@@ -50,7 +50,8 @@ test.describe('api contracts', () => {
 });
 
 test.describe('subscriber flow with dev login', () => {
-  test('dev login unlocks full posts and paywall disappears', async ({ page }) => {    await page.goto('/');
+  test('dev login unlocks full posts and paywall disappears', async ({ page }) => {
+    await page.goto('/');
     await page.getByRole('button', { name: /sign in/i }).click();
 
     await page.waitForURL(/api\/auth\/signin/);
@@ -81,5 +82,9 @@ test.describe('subscriber flow with dev login', () => {
     await page.getByRole('button', { name: /subscribe now/i }).click();
     await page.waitForURL(/\/posts$/);
     await expect(page.getByText('Server Components in practice')).toBeVisible();
+
+    await page.goto('/posts/react-server-components-in-2026');
+    await expect(page.locator('article ul li').first()).toBeVisible();
+    await expect(page.getByText('Wanna continue reading?')).toHaveCount(0);
   });
 });
