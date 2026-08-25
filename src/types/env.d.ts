@@ -4,10 +4,13 @@ declare namespace NodeJS {
     DATABASE_URL?: string;
     /** JWT signing key used by next-auth */
     SIGNING_KEY?: string;
+    /** Absolute app URL, required by next-auth outside the default port */
+    NEXTAUTH_URL?: string;
     GITHUB_CLIENT_ID?: string;
     GITHUB_CLIENT_SECRET?: string;
     /** Enables the development-only credentials login. Never enable in production. */
     AUTH_DEV_LOGIN?: string;
+    NEXT_PUBLIC_AUTH_DEV_LOGIN?: string;
     STRIPE_SECRET_API_KEY?: string;
     NEXT_PUBLIC_STRIPE_PUBLIC_KEY?: string;
     /** Stripe recurring price id for the ig.news plan */

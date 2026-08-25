@@ -34,3 +34,7 @@ coverage/
 # stripe cli binaries
 stripe*
 !stripe.config.js
+
+# playwright artifacts
+test-results/
+playwright-report/

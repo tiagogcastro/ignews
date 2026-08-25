@@ -5,8 +5,12 @@ import { signIn, signOut, useSession } from 'next-auth/react';
 
 import styles from './styles.module.scss';
 
+const devLoginEnabled = process.env.NEXT_PUBLIC_AUTH_DEV_LOGIN === 'true';
+
 export function SignInGithubButton() {
   const { data: session } = useSession();
+
+  const providerId = devLoginEnabled ? 'dev' : 'github';
 
   return session ? (
     <button
@@ -22,7 +26,7 @@ export function SignInGithubButton() {
     <button
       type="button"
       className={styles.signInButton}
-      onClick={() => signIn('github')}
+      onClick={() => signIn(providerId)}
     >
       <FaGithub color="#eba417" />
       Sign in with Github
