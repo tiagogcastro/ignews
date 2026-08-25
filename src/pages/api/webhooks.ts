@@ -4,7 +4,7 @@ import Stripe from 'stripe';
 import { z } from 'zod';
 
 import { ApiError, fail, ok, parseWith, withErrorHandling } from '@/lib/api';
-import { getStripe } from '@/services/stripe';
+import { getStripeWebhooks } from '@/services/stripe';
 import { saveSubscription } from '@/services/subscriptions';
 
 export const config = {
@@ -41,12 +41,17 @@ async function webhooksHandler(
   }
 
   const buf = await buffer(request);
-  const signature = parseWith(signatureSchema, request.headers['stripe-signature']);
+
+  const rawSignature = request.headers['stripe-signature'];
+  if (!rawSignature) {
+    throw new ApiError(400, 'Missing stripe-signature header');
+  }
+  const signature = parseWith(signatureSchema, rawSignature);
 
   let event: Stripe.Event;
 
   try {
-    event = getStripe().webhooks.constructEvent(
+    event = getStripeWebhooks().webhooks.constructEvent(
       buf,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET ?? '',

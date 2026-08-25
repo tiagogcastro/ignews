@@ -21,14 +21,14 @@ async function subscribeHandler(
     throw new ApiError(405, 'Method not allowed');
   }
 
-  parseWith(bodySchema, request.body ?? {});
-
   const session = await getSession({ req: request });
   const email = session?.user?.email;
 
   if (!email) {
     throw new ApiError(401, 'Authentication required');
   }
+
+  parseWith(bodySchema, request.body ?? {});
 
   const user = await prisma.user.upsert({
     where: { email },

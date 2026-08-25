@@ -11,8 +11,8 @@ const githubConfigured = Boolean(
 );
 
 const devLoginEnabled =
-  process.env.NODE_ENV !== 'production' &&
-  (process.env.AUTH_DEV_LOGIN === 'true' || !githubConfigured);
+  process.env.AUTH_DEV_LOGIN === 'true' ||
+  (!githubConfigured && process.env.NODE_ENV !== 'production');
 
 const devEmailSchema = z.string().email();
 
