@@ -1,5 +1,5 @@
-import { ActiveLink } from '../ActiveLink';
-import { SignInGithubButton } from '../SignInGithubButton';
+import { ActiveLink } from '@/components/ActiveLink';
+import { SignInGithubButton } from '@/components/SignInGithubButton';
 import styles from './styles.module.scss';
 
 export function Header() {
