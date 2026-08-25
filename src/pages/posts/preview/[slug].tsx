@@ -1,11 +1,12 @@
-import { GetStaticPaths, GetStaticProps } from 'next'
-import { getSession, useSession } from 'next-auth/react'
+import { GetStaticPaths, GetStaticProps } from 'next';
+import { useSession } from 'next-auth/react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { RichText } from 'prismic-dom';
 import { useEffect } from 'react';
-import { getPrismicClient } from '../../../services/prismic';
+
+import { formatDate } from '@/lib/format';
+import { cms } from '@/services/cms';
 
 import styles from '../post.module.scss';
 
@@ -15,20 +16,19 @@ interface PostPreviewProps {
     title: string;
     content: string;
     updatedAt: string;
-  }
+  };
 }
 
-export default function PostPreview({
-  post
-}: PostPreviewProps) {
+export default function PostPreview({ post }: PostPreviewProps) {
   const { data: session } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if(session?.activeSubscription) {
+    if (session?.activeSubscription) {
       router.push(`/posts/${post.slug}`);
     }
-  }, [session]);
+  }, [session, router, post.slug]);
+
   return (
     <>
       <Head>
@@ -42,21 +42,17 @@ export default function PostPreview({
 
           <div
             className={`${styles.postContent} ${styles.previewContent}`}
-            dangerouslySetInnerHTML={{
-              __html: post.content
-            }} 
+            dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
           <div className={styles.continueReading}>
             Wanna continue reading?
-            <Link href="/">
-              <a>Subscribe now 🙂</a>
-            </Link>
+            <Link href="/">Subscribe now 🙂</Link>
           </div>
         </article>
       </main>
     </>
-  )
+  );
 }
 
 export const getStaticPaths: GetStaticPaths = () => {
@@ -64,30 +60,30 @@ export const getStaticPaths: GetStaticPaths = () => {
     paths: [],
     fallback: 'blocking',
   };
-}
+};
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const { slug } = params;
+  const slug = String(params?.slug ?? '');
 
-  const prismic = getPrismicClient();
+  const remotePost = await cms.getPostBySlug(slug);
 
-  const response = await prismic.getByUID('posts', String(slug), {});
+  if (!remotePost) {
+    return {
+      notFound: true,
+    };
+  }
 
   const post = {
     slug,
-    title: RichText.asText(response.data.title),
-    content: RichText.asHtml(response.data.content.splice(0, 3)),
-    updatedAt: new Date(response.last_publication_date).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    })
+    title: remotePost.title,
+    content: remotePost.previewHtml,
+    updatedAt: formatDate(remotePost.updatedAt),
   };
 
   return {
     props: {
-      post
+      post,
     },
-    revalidate: 60 * 30, // 30 minutos
-  }
-}
+    revalidate: 60 * 30,
+  };
+};

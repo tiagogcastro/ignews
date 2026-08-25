@@ -1,8 +1,9 @@
-import { GetServerSideProps } from 'next'
-import { getSession } from 'next-auth/react'
+import { GetServerSideProps } from 'next';
+import { getSession } from 'next-auth/react';
 import Head from 'next/head';
-import { RichText } from 'prismic-dom';
-import { getPrismicClient } from '../../services/prismic';
+
+import { formatDate } from '@/lib/format';
+import { cms } from '@/services/cms';
 
 import styles from './post.module.scss';
 
@@ -12,12 +13,10 @@ interface PostProps {
     title: string;
     content: string;
     updatedAt: string;
-  }
+  };
 }
 
-export default function Post({
-  post
-}: PostProps) {
+export default function Post({ post }: PostProps) {
   return (
     <>
       <Head>
@@ -31,50 +30,45 @@ export default function Post({
 
           <div
             className={styles.postContent}
-            dangerouslySetInnerHTML={{
-              __html: post.content
-            }} 
+            dangerouslySetInnerHTML={{ __html: post.content }}
           />
         </article>
       </main>
     </>
-  )
+  );
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ req, params }) => {
-  const session = await getSession({
-    req
-  });
+  const session = await getSession({ req });
+  const slug = String(params?.slug ?? '');
 
-  const { slug } = params;
-
-  if(!session?.activeSubscription) {
+  if (!session?.activeSubscription) {
     return {
       redirect: {
         destination: '/',
         permanent: false,
-      }
+      },
     };
   }
 
-  const prismic = getPrismicClient();
+  const remotePost = await cms.getPostBySlug(slug);
 
-  const response = await prismic.getByUID('posts', String(slug), {});
+  if (!remotePost) {
+    return {
+      notFound: true,
+    };
+  }
 
   const post = {
     slug,
-    title: RichText.asText(response.data.title),
-    content: RichText.asHtml(response.data.content),
-    updatedAt: new Date(response.last_publication_date).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    })
+    title: remotePost.title,
+    content: remotePost.contentHtml,
+    updatedAt: formatDate(remotePost.updatedAt),
   };
 
   return {
     props: {
-      post
-    }
-  }
-}
+      post,
+    },
+  };
+};

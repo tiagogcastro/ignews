@@ -4,27 +4,47 @@ Guidance for AI coding agents working in this repository.
 
 ## Project
 
-ig.news: subscription blog built during Rocketseat Ignite (2022). Next.js 12
-+ React 18 with Stripe checkout, GitHub OAuth via next-auth, Prismic CMS for
-posts and FaunaDB for subscriptions. Default branch was `igNews`, migrated
-to the main/develop convention.
+ig.news: subscription blog originally built during Rocketseat Ignite (2022),
+modernized in 2026. Next.js 16 (pages router) + React 19, Stripe Checkout,
+GitHub OAuth via next-auth, Prismic CMS for posts, Prisma 7 + SQLite for
+subscriptions. Branches: `main` (stable) and `develop` (work happens here).
 
 ## Commands
 
 ```bash
-yarn install
-cp .env.example .env    # Stripe, GitHub OAuth, FaunaDB, JWT and Prismic settings
-yarn dev                # http://localhost:3000
-yarn slicemachine       # Prismic Slice Machine (content modeling)
+npm install             # node >= 22 (see .nvmrc); postinstall runs prisma generate
+cp .env.example .env    # works empty: sandbox providers activate automatically
+npx prisma migrate deploy
+npm run db:seed         # alice (active plan), bob (canceled), carol (no plan)
+npm run dev             # http://localhost:3010 (PORT env respected)
+npm run typecheck       # must pass with zero errors before any commit
+npm run lint            # eslint flat config, next core-web-vitals
+npm run test:e2e        # playwright, expects a running server on :3010 or starts one
+npm run build           # production build must stay green
 ```
 
-## Structure
+## Architecture notes
 
-- `src/pages`: home (post list), `posts/[slug]` (paywalled content), `/api` (auth, subscribe, webhooks)
-- `src/services`: Stripe, Prismic and CMS API clients
-- `customtypes`, `.slicemachine`, `sm.json`: Prismic Slice Machine content models
+- Data layer is Prisma 7 + SQLite (FaunaDB was discontinued). Config lives in
+  `prisma.config.ts`; generated client goes to `src/generated/prisma`
+  (gitignored). Relative DATABASE_URL resolves against the project root.
+- External integrations are pluggable providers under `src/services/cms` and
+  `src/services/payments`: real implementation when env credentials exist,
+  sandbox implementation otherwise. Never hardcode provider URLs.
+- All API routes use the `{ data, error }` response envelope from
+  `src/lib/api.ts` plus zod validation; authorize first, validate after.
+- Webhook signature verification uses `getStripeWebhooks()` which works
+  offline; regular API calls require `getStripe()`.
+- Imports use the single `@/*` alias mapped to `src/*` (tsconfig paths).
+  Same module relative imports are fine.
 
 ## Rules for agents
 
-- Docs-only maintenance phase: no dependency upgrades or runtime behavior changes
-- Never commit `.env`, binaries or keys; `.env.example` documents all required variables
+- Conventional Commits, short messages, one logical block per commit.
+- Never force push without explicit owner approval.
+- Never commit `.env`, binaries or keys; `.env.example` documents every
+  variable. REACTIVATION.md is local only (git/info/exclude).
+- No em dashes anywhere (code, commits, docs).
+- English for all repository content.
+- Run typecheck, lint, build and the E2E suite before declaring work done.
+- Port 3000 may be occupied by other local projects; default to PORT=3010.

@@ -1,61 +1,65 @@
 import { GetStaticProps } from 'next';
 import Head from 'next/head';
-import { SubscribeButton } from '../Components/SubscribeButton';
-import { prices_id, stripe } from '../services/stripe';
+
+import { SubscribeButton } from '@/components/SubscribeButton';
+import { formatCurrencyFromCents } from '@/lib/format';
+import { payments } from '@/services/payments';
 
 import styles from './home.module.scss';
 
 interface HomeProps {
   product: {
     priceId: string;
-    amount: number;
-  }
+    amount: string;
+  };
 }
 
-export default function Home({
-  product
-}: HomeProps) {
+const SANDBOX_PRICE_ID = 'price_sandbox_ignews_monthly';
 
+export default function Home({ product }: HomeProps) {
   return (
-    <div>
+    <>
       <Head>
         <title>Home | ig.news</title>
       </Head>
+
       <main className={styles.contentContainer}>
         <section className={styles.hero}>
           <span>👏 Hey, welcome</span>
           <h1>
-            New about the
+            News about the
             <span>React</span>
             world
           </h1>
           <p>
-            Get access to all the publications <br />
+            Get access to all the publications
+            {' '}
+            <br />
             <span>for {product.amount} month</span>
           </p>
-          <SubscribeButton priceId={product.priceId} />
+          <SubscribeButton />
         </section>
+
         <img src="/images/avatar.svg" alt="Girl coding" />
       </main>
-    </div>
-  )
+    </>
+  );
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-  const price = await stripe.prices.retrieve(prices_id);  
+  const price = await payments.getPrice(
+    process.env.STRIPE_PRICE_ID || SANDBOX_PRICE_ID,
+  );
 
   const product = {
-    priceId: price.id,
-    amount: new Intl.NumberFormat('en-us', {
-      style: 'currency',
-      currency: 'usd'
-    }).format(price.unit_amount / 100),
+    priceId: price.priceId,
+    amount: formatCurrencyFromCents(price.unitAmount ?? 0),
   };
 
   return {
     props: {
-      product
+      product,
     },
-    revalidate: 60 * 60 * 24, // 24 hours
-  }
-}
+    revalidate: 60 * 60 * 24,
+  };
+};
