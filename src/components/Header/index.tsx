@@ -9,10 +9,10 @@ export function Header() {
         <img src="/images/logo.svg" alt="" />
         <nav>
           <ActiveLink activeClassName={styles.active} href="/">
-            <a>Home</a>
+            Home
           </ActiveLink>
           <ActiveLink activeClassName={styles.active} href="/posts">
-            <a>Posts</a>
+            Posts
           </ActiveLink>
         </nav>
         <SignInGithubButton />
