@@ -1,14 +1,21 @@
 import Stripe from 'stripe';
 
-export const stripe = new Stripe(
-  process.env.STRIPE_SECRET_API_KEY,
-  {
-    apiVersion: '2020-08-27',
-    appInfo: {
-      name: 'Ignews',
-      version: '0.1.0'
-    }
-  }
-);
+let stripeClient: Stripe | null = null;
 
-export const prices_id = 'price_1KvMEvD3Try4VPfGgV5sfL32';
+export function getStripe(): Stripe {
+  if (!stripeClient) {
+    if (!process.env.STRIPE_SECRET_API_KEY) {
+      throw new Error('STRIPE_SECRET_API_KEY is not configured');
+    }
+
+    stripeClient = new Stripe(process.env.STRIPE_SECRET_API_KEY, {
+      apiVersion: '2026-07-29.dahlia',
+      appInfo: {
+        name: 'ig.news',
+        version: '1.0.0',
+      },
+    });
+  }
+
+  return stripeClient;
+}

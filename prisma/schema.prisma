@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id               String         @id @default(cuid())
+  email            String         @unique
+  stripeCustomerId String?        @unique
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @default(now()) @updatedAt
+  subscriptions    Subscription[]
+}
+
+model Subscription {
+  id                   String   @id @default(cuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status               String
+  priceId              String?
+  stripeCustomerId     String?
+  stripeSubscriptionId String?  @unique
+  createdAt            DateTime @default(now())
+
+  @@index([userId])
+}

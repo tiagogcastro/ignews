@@ -1,85 +1,61 @@
-import { query } from 'faunadb';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from 'next-auth/react';
-import { faunadb } from '../../services/faunadb';
- 
-import { prices_id, stripe } from '../../services/stripe';
+import { z } from 'zod';
 
-type User = {
-  ref: {
-    id: string;
-  };
+import { ApiError, ok, parseWith, withErrorHandling } from '@/lib/api';
+import { prisma } from '@/lib/prisma';
+import { payments } from '@/services/payments';
 
-  data: {
-    stripe_customer_id: string;
-  };
-}
+const bodySchema = z.object({}).strict();
 
-// eslint-disable-next-line import/no-anonymous-default-export
-export default async (request: NextApiRequest, response: NextApiResponse) => {
-  if(request.method === 'POST') {
-    const session = await getSession({
-      req: request,
-    });
-    
-    try {
-      const user = await faunadb.query<User>(
-        query.Get(
-          query.Match(
-            query.Index('user_by_email'),
-            query.Casefold(session.user.email),
-          )
-        )
-      );
+const DEFAULT_SUCCESS_URL = 'http://localhost:3000/posts';
+const DEFAULT_CANCEL_URL = 'http://localhost:3000';
+const SANDBOX_PRICE_ID = 'price_sandbox_ignews_monthly';
 
-      let customerId = user.data.stripe_customer_id;
-
-      if(!customerId) {
-        const stripeCustomer = await stripe.customers.create({
-          email: session.user.email,
-          // metadata,
-        });
-
-        await faunadb.query(
-          query.Update(
-            query.Ref(query.Collection('users'), user.ref.id),
-            {
-              data: {
-                stripe_customer_id: stripeCustomer.id,
-              }
-            }
-          )
-        );
-
-        customerId = stripeCustomer.id;
-      }
-
-      const stripeCheckoutSession = await stripe.checkout.sessions.create({
-        customer: customerId,
-        payment_method_types: ['card'],
-        billing_address_collection: 'required',
-        line_items: [
-          {
-            price: prices_id,
-            quantity: 1,
-          }
-        ],
-        mode: 'subscription',
-        allow_promotion_codes: true,
-        success_url: process.env.STRIPE_SUCCESS_URL,
-        cancel_url: process.env.STRIPE_CANCEL_URL,
-      });
-
-      return response.status(200).json({
-        sessionId: stripeCheckoutSession.id
-      });
-
-    } catch (error) {
-      console.log({error});
-    }
-
-  } else {
+async function subscribeHandler(
+  request: NextApiRequest,
+  response: NextApiResponse,
+): Promise<void> {
+  if (request.method !== 'POST') {
     response.setHeader('Allow', 'POST');
-    response.status(405).end('Method not allowed');
+    throw new ApiError(405, 'Method not allowed');
   }
+
+  parseWith(bodySchema, request.body ?? {});
+
+  const session = await getSession({ req: request });
+  const email = session?.user?.email;
+
+  if (!email) {
+    throw new ApiError(401, 'Authentication required');
+  }
+
+  const user = await prisma.user.upsert({
+    where: { email },
+    create: { email },
+    update: {},
+  });
+
+  const customerId = await payments.ensureCustomer({
+    email,
+    existingCustomerId: user.stripeCustomerId ?? undefined,
+  });
+
+  if (customerId !== user.stripeCustomerId) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { stripeCustomerId: customerId },
+    });
+  }
+
+  const checkoutSession = await payments.createCheckoutSession({
+    customerId,
+    priceId: process.env.STRIPE_PRICE_ID || SANDBOX_PRICE_ID,
+    successUrl: process.env.STRIPE_SUCCESS_URL || DEFAULT_SUCCESS_URL,
+    cancelUrl: process.env.STRIPE_CANCEL_URL || DEFAULT_CANCEL_URL,
+  });
+
+  ok(response, { sessionId: checkoutSession.sessionId, url: checkoutSession.url });
 }
+
+export default withErrorHandling(subscribeHandler);
