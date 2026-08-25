@@ -6,7 +6,9 @@ import { ApiError, ok, parseWith, withErrorHandling } from '@/lib/api';
 import { prisma } from '@/lib/prisma';
 import { payments } from '@/services/payments';
 
-const bodySchema = z.object({}).strict();
+const bodySchema = z
+  .union([z.object({}).strict(), z.null(), z.literal('')])
+  .optional();
 
 const DEFAULT_SUCCESS_URL = 'http://localhost:3000/posts';
 const DEFAULT_CANCEL_URL = 'http://localhost:3000';

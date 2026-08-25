@@ -50,8 +50,7 @@ test.describe('api contracts', () => {
 });
 
 test.describe('subscriber flow with dev login', () => {
-  test('dev login unlocks full posts and paywall disappears', async ({ page }) => {
-    await page.goto('/');
+  test('dev login unlocks full posts and paywall disappears', async ({ page }) => {    await page.goto('/');
     await page.getByRole('button', { name: /sign in/i }).click();
 
     await page.waitForURL(/api\/auth\/signin/);
@@ -68,5 +67,19 @@ test.describe('subscriber flow with dev login', () => {
     await expect(page).toHaveURL(/\/posts\/react-server-components-in-2026/);
     await expect(page.locator('article ul li').first()).toBeVisible();
     await expect(page.getByText('Wanna continue reading?')).toHaveCount(0);
+  });
+
+  test('subscribe button completes the sandbox checkout for a visitor', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: /sign in/i }).click();
+
+    await page.waitForURL(/api\/auth\/signin/);
+    await page.getByLabel(/email/i).fill('carol@example.com');
+    await page.getByRole('button', { name: /sign in with development/i }).click();
+    await page.waitForURL('/');
+
+    await page.getByRole('button', { name: /subscribe now/i }).click();
+    await page.waitForURL(/\/posts$/);
+    await expect(page.getByText('Server Components in practice')).toBeVisible();
   });
 });

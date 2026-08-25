@@ -7,8 +7,11 @@ import { api } from '@/services/api';
 
 import styles from './styles.module.scss';
 
-type CheckoutSessionPayload = {
-  url: string | null;
+type SubscribeEnvelope = {
+  data: {
+    sessionId: string;
+    url: string | null;
+  };
 };
 
 type SubscribeErrorResponse = {
@@ -36,8 +39,8 @@ export function SubscribeButton() {
     setIsSubscribing(true);
 
     try {
-      const response = await api.post<CheckoutSessionPayload>('/subscribe');
-      const checkoutUrl = response.data.url;
+      const response = await api.post<SubscribeEnvelope>('/subscribe');
+      const checkoutUrl = response.data.data?.url;
 
       if (!checkoutUrl) {
         throw new Error('Checkout session did not return a URL.');
