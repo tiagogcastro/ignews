@@ -1,7 +1,7 @@
 .container {
   max-width: 1128px;
   margin: 0 auto;
-  padding: 0 auto;
+  padding: 0 1.5rem;
 }
 
 .post {
@@ -60,9 +60,27 @@
   a {
     color: var(--yellow-500);
     margin-left: 0.5rem;
-      
+
     &:hover {
       text-decoration: underline;
     }
+  }
+}
+
+@media (max-width: 720px) {
+  .post {
+    margin: 2.5rem auto;
+
+    h1 {
+      font-size: 2.25rem;
+      line-height: 2.75rem;
+    }
+  }
+
+  .continueReading {
+    padding: 1.5rem;
+    border-radius: 1rem;
+    font-size: 1rem;
+    margin: 3rem 0 2rem;
   }
 }

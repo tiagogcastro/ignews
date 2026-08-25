@@ -49,3 +49,41 @@
     margin-top: 2.5rem;
   }
 }
+
+@media (max-width: 720px) {
+  .contentContainer {
+    height: auto;
+    min-height: calc(100vh - 5rem);
+
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2rem;
+
+    padding: 3rem 1.25rem;
+
+    > img {
+      display: none;
+    }
+  }
+
+  .hero {
+    > span {
+      font-size: 1.25rem;
+    }
+
+    h1 {
+      font-size: 2.75rem;
+      line-height: 3rem;
+
+      span {
+        margin: 0 0.5rem;
+      }
+    }
+
+    p {
+      font-size: 1.25rem;
+      line-height: 1.9rem;
+    }
+  }
+}

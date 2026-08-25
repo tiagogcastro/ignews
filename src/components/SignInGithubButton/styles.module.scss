@@ -34,3 +34,29 @@
     filter: brightness(0.8);
   }
 }
+
+@media (max-width: 720px) {
+  .signInButton {
+    height: 2.5rem;
+    padding: 0 1rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+
+    svg {
+      width: 16px;
+      height: 16px;
+
+      &:first-child {
+        margin-right: 0.5rem;
+      }
+
+      &.closeIcon {
+        margin-left: 0.5rem;
+      }
+    }
+  }
+
+  .longText {
+    display: none;
+  }
+}
