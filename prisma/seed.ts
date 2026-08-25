@@ -32,23 +32,27 @@ async function main(): Promise<void> {
   console.log('Seeding users and subscriptions...');
 
   for (const seedUser of SEED_USERS) {
+    const customerId = seedUser.subscriptionStatus
+      ? `cus_sandbox_seed_${seedUser.email.replace(/[^a-z0-9]/gi, '')}`
+      : null;
+
     const user = await prisma.user.upsert({
       where: { email: seedUser.email },
-      create: { email: seedUser.email },
-      update: {},
+      create: { email: seedUser.email, stripeCustomerId: customerId },
+      update: { stripeCustomerId: customerId },
     });
 
     await prisma.subscription.deleteMany({
       where: { userId: user.id },
     });
 
-    if (seedUser.subscriptionStatus) {
+    if (seedUser.subscriptionStatus && customerId) {
       await prisma.subscription.create({
         data: {
           userId: user.id,
           status: seedUser.subscriptionStatus,
           priceId: 'price_sandbox_ignews_monthly',
-          stripeCustomerId: `cus_sandbox_seed_${user.id}`,
+          stripeCustomerId: customerId,
           stripeSubscriptionId: `sub_sandbox_seed_${user.id}`,
         },
       });
