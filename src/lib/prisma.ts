@@ -8,7 +8,9 @@ function resolveDatabaseUrl(): string {
   const filePath = rawUrl.replace(/^file:/, '');
   // Relative URLs are resolved against the project root,
   // matching the Prisma CLI behavior with prisma.config.ts.
-  return path.isAbsolute(filePath) ? filePath : path.join(process.cwd(), filePath);
+  return path.isAbsolute(filePath)
+    ? filePath
+    : path.join(process.cwd(), filePath);
 }
 
 const createPrismaClient = () => {
