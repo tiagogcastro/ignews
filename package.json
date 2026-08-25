@@ -1,45 +1,61 @@
 {
   "name": "ignews",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "postinstall": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio",
     "stripeListen": "stripe listen --forward-to localhost:3000/api/webhooks",
-    "slicemachine": "start-slicemachine"
+    "test:e2e": "playwright test"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@prismicio/client": "^6.6.4",
-    "@prismicio/helpers": "^2.3.3",
-    "@prismicio/react": "^2.4.4",
-    "@prismicio/slice-simulator-react": "^0.2.2",
-    "@stripe/stripe-js": "^1.29.0",
-    "axios": "^0.27.2",
-    "faunadb": "^4.5.4",
-    "next": "12.1.5",
-    "next-auth": "^4.3.4",
-    "node-jose-tools": "^1.6.28",
-    "prismic-dom": "^2.2.7",
-    "react": "18.1.0",
-    "react-dom": "18.1.0",
-    "react-icons": "^4.3.1",
-    "sass": "^1.51.0",
-    "scss": "^0.2.4",
-    "stripe": "^8.222.0"
+    "@prisma/adapter-better-sqlite3": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "@prismicio/client": "^7.22.0",
+    "@prismicio/react": "^3.4.1",
+    "axios": "^1.19.0",
+    "better-sqlite3": "^13.0.3",
+    "dotenv": "^17.4.2",
+    "next": "^16.3.2",
+    "next-auth": "^4.24.15",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-icons": "^5.7.0",
+    "sass": "^1.103.1",
+    "stripe": "^22.5.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/axios": "^0.14.0",
-    "@types/next-auth": "^3.15.0",
-    "@types/node": "^17.0.30",
-    "@types/prismic-dom": "^2.1.1",
-    "@types/react": "^18.0.8",
-    "@types/react-icons": "^3.0.0",
-    "@types/stripe": "^8.0.417",
-    "eslint": "8.14.0",
-    "eslint-config-next": "12.1.5",
-    "slice-machine-ui": "^0.4.2",
-    "typescript": "^4.7.4"
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.2",
+    "prisma": "^7.10.0",
+    "tsx": "^4.23.12",
+    "typescript": "~5.9.3"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true,
+    "better-sqlite3@13.0.3": true,
+    "@prisma/engines@7.10.0": true,
+    "prisma@7.10.0": true,
+    "esbuild@0.28.2": true,
+    "@parcel/watcher@2.6.0": true,
+    "unrs-resolver@1.12.2": true
   }
 }
