@@ -1,35 +1,24 @@
 import { useSession } from 'next-auth/react';
 import { GetStaticProps } from 'next';
 import Head from 'next/head';
-
-import { RichText } from 'prismic-dom';
-import * as Prismic from '@prismicio/client';
-import { getPrismicClient } from '../../services/prismic';
-
-import styles from './styles.module.scss';
 import Link from 'next/link';
 
-type Post = {
-  id: string;
-  slug: string;
-  title: string;
-  excerpt: string;
-  updatedAt: string;
-};
+import { formatDate } from '@/lib/format';
+import { cms, PostSummary } from '@/services/cms';
+
+import styles from './styles.module.scss';
 
 interface PostsProps {
-  posts: Post[];
+  posts: PostSummary[];
 }
 
-export default function Posts({
-  posts
-}: PostsProps) {
+export default function Posts({ posts }: PostsProps) {
   const { data: session } = useSession();
 
-  function redirectToPost(post: Post) {
+  function redirectToPost(post: PostSummary): string {
     return session?.activeSubscription
       ? `/posts/${post.slug}`
-      : `/posts/preview/${post.slug}`
+      : `/posts/preview/${post.slug}`;
   }
 
   return (
@@ -40,13 +29,11 @@ export default function Posts({
 
       <main className={styles.container}>
         <div className={styles.posts}>
-          {posts.map(post => (
-            <Link href={redirectToPost(post)} key={post.id}>
-              <a>
-                <time>{post.updatedAt}</time>
-                <strong>{post.title}</strong>
-                <p>{post.excerpt}</p>
-              </a>
+          {posts.map((post) => (
+            <Link href={redirectToPost(post)} key={post.id} className={styles.postLink}>
+              <time>{formatDate(post.updatedAt)}</time>
+              <strong>{post.title}</strong>
+              <p>{post.excerpt}</p>
             </Link>
           ))}
         </div>
@@ -56,31 +43,12 @@ export default function Posts({
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-  const prismic = getPrismicClient();
-
-  const response = await prismic.get({
-    predicates: Prismic.predicate.at('document.type', 'posts'),
-    fetch: ['post.title', 'post.content'],
-    pageSize: 100,
-  });
-
-  const posts = response.results.map(post => {
-    return {
-      id: post.id,
-      slug: post.uid,
-      title: RichText.asText(post.data.title),
-      excerpt: post.data.content.find(content => content.type === 'paragraph')?.text ?? '',
-      updatedAt: new Date(post.last_publication_date).toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-      })
-    }
-  });
+  const posts = await cms.listPosts();
 
   return {
     props: {
-      posts
-    }
-  }
-}
+      posts,
+    },
+    revalidate: 60 * 30,
+  };
+};
