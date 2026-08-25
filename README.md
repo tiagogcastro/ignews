@@ -101,6 +101,21 @@ a paying reader (`alice@example.com`) and a visitor without a plan
 | `npm run db:migrate` / `db:seed` / `db:studio` | Prisma workflows |
 | `npm run stripeListen` | Forward Stripe webhooks locally |
 
+## Testing
+
+The Playwright suite covers public pages, API contracts (auth required,
+unsigned webhooks rejected) and the full subscriber journey in desktop and
+mobile viewports.
+
+![playwright suite passing](.github/screenshots/test-suite-passing.png)
+
+The subscriber journey itself: development login, paywalled preview and the
+sandbox checkout through the subscribe button.
+
+| Dev login | Logged in | Sandbox checkout |
+| --- | --- | --- |
+| ![dev login](.github/screenshots/test-dev-login.png) | ![logged in](.github/screenshots/test-logged-in.png) | ![sandbox checkout](.github/screenshots/test-subscribe-checkout.png) |
+
 ## Project layout
 
 ```
